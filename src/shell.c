@@ -24,7 +24,9 @@ void help_command(int, char **);
 void host_command(int, char **);
 void mmtest_command(int, char **);
 void test_command(int, char **);
+void fibo_command(int, char **);
 void _command(int, char **);
+int  atoi(char *);
 
 #define MKCL(n, d) {.name=#n, .fptr=n ## _command, .desc=d}
 
@@ -37,6 +39,7 @@ cmdlist cl[]={
 	MKCL(mmtest, "heap memory allocation test"),
 	MKCL(help, "help"),
 	MKCL(test, "test new function"),
+	MKCL(fibo, "Return Nth fibonnaci number"),
 	MKCL(, ""),
 };
 
@@ -96,7 +99,6 @@ int filedump(const char *filename){
 	fio_close(fd);
 	return 1;
 }
-
 void ps_command(int n, char *argv[]){
 	signed char buf[1024];
 	vTaskList(buf);
@@ -186,6 +188,33 @@ void test_command(int n, char *argv[]) {
     host_action(SYS_CLOSE, handle);
 }
 
+void fibo_command(int n, char *argv[]) {
+    int i = 0;
+    int first = 0;
+    int second = 1;
+    int result;
+
+    fio_printf(1, "\r\n");
+
+    if(n == 1) {
+        fio_printf(1, "Please assign a number \r\n");
+        return;
+    }
+
+    for(i=0; i <= atoi(argv[1]); i++ ) {
+        if( i <= 1)
+            result = i;
+        else 
+        {
+            result = first + second;
+            first = second;
+            second = result;
+        }
+    }
+    fio_printf(1, "The %dth fibonacci number is:%d\r\n",atoi(argv[1]), result);
+
+}
+
 void _command(int n, char *argv[]){
     (void)n; (void)argv;
     fio_printf(1, "\r\n");
@@ -200,4 +229,16 @@ cmdfunc *do_command(const char *cmd){
 			return cl[i].fptr;
 	}
 	return NULL;	
+}
+int atoi(char * str)
+{
+    int result = 0;
+    while(*str != 0)
+    {
+        int c = *str - '0';
+        result = result * 10 + c;
+        str++;
+    }
+    
+    return result;
 }
