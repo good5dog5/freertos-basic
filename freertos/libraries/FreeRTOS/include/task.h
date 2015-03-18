@@ -209,13 +209,13 @@ typedef struct xTASK_PARAMTERS
  * task. h
  *<pre>
  portBASE_TYPE xTaskCreate(
-							  pdTASK_CODE pvTaskCode,
-							  const char * const pcName,
-							  unsigned short usStackDepth,
-							  void *pvParameters,
-							  unsigned portBASE_TYPE uxPriority,
-							  xTaskHandle *pvCreatedTask
-						  );</pre>
+	pdTASK_CODE pvTaskCode,
+	const char * const pcName,
+	unsigned short usStackDepth,
+	void *pvParameters,
+	unsigned portBASE_TYPE uxPriority,
+	xTaskHandle *pvCreatedTask
+);</pre>
  *
  * Create a new task and add it to the list of tasks that are ready to run.
  *

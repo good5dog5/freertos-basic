@@ -1056,7 +1056,7 @@ tskTCB * pxNewTCB;
 
 void vTaskStartScheduler( void )
 {
-portBASE_TYPE xReturn;
+    portBASE_TYPE xReturn;
 
 	/* Add the idle task at the lowest priority. */
 	#if ( INCLUDE_xTaskGetIdleTaskHandle == 1 )
@@ -1280,7 +1280,7 @@ unsigned portBASE_TYPE uxTaskGetNumberOfTasks( void )
 
 	void vTaskList( signed char *pcWriteBuffer )
 	{
-	unsigned portBASE_TYPE uxQueue;
+	    unsigned portBASE_TYPE uxQueue;
 
 		/* This is a VERY costly function that should be used for debug only.
 		It leaves interrupts disabled for a LONG time. */

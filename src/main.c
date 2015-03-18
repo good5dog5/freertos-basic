@@ -21,6 +21,7 @@
  * it contains file system structure of test_romfs directory
  */
 extern const unsigned char _sromfs;
+extern void vTask(void *);
 
 //static void setup_hardware();
 
@@ -87,9 +88,9 @@ char recv_byte()
 }
 void command_prompt(void *pvParameters)
 {
-	char buf[128];
-	char *argv[20];
-    char hint[] = USER_NAME "@" USER_NAME "-STM32:~$ ";
+        char buf[128];
+        char *argv[20];
+        char hint[] = USER_NAME "@" USER_NAME "-STM32:~$ ";
 
 	fio_printf(1, "\rWelcome to FreeRTOS Shell\r\n");
 	while(1){
@@ -97,6 +98,15 @@ void command_prompt(void *pvParameters)
 		fio_read(0, buf, 127);
 	
 		int n=parse_command(buf, argv);
+
+/* Test parse_command 
+                int k = 0;
+
+                fio_printf(1, "\r\n");
+                fio_printf(1, "n is : %d\r\n", n);
+                for(k=0; k < n; k++)
+                        fio_printf(1, "%s\r\n", argv[k]);
+*/
 
 		/* will return pointer to the command function */
 		cmdfunc *fptr=do_command(argv[0]);
@@ -147,6 +157,9 @@ void system_logger(void *pvParameters)
     host_action(SYS_CLOSE, handle);
 }
 
+//static const char *pcNameForTask1 = "Task 1 is running\r\n";
+//static const char *pcNameForTask2 = "Task 2 is running\r\n";
+
 int main()
 {
 	init_rs232();
@@ -165,12 +178,14 @@ int main()
 	 * Reference: www.freertos.org/a00116.html */
 	serial_rx_queue = xQueueCreate(1, sizeof(char));
 
-    register_devfs();
+        register_devfs();
 	/* Create a task to output text read from romfs. */
 	xTaskCreate(command_prompt,
 	            (signed portCHAR *) "CLI",
-	            512 /* stack size */, NULL, tskIDLE_PRIORITY + 2, NULL);
+	            512 /* stack size */, NULL, tskIDLE_PRIORITY + 5, NULL);
 
+        //xTaskCreate(vTask, (signed portCHAR *) "Task 1", 100, (void *) pcNameForTask1, 1, NULL);
+        //xTaskCreate(vTask, (signed portCHAR *) "Task 2", 100, (void *) pcNameForTask2, 1, NULL);
 #if 0
 	/* Create a task to record system log. */
 	xTaskCreate(system_logger,

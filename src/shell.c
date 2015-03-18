@@ -25,8 +25,11 @@ void host_command(int, char **);
 void mmtest_command(int, char **);
 void test_command(int, char **);
 void fibo_command(int, char **);
+void new_command(int, char **);
 void _command(int, char **);
 int  atoi(char *);
+void anonymous_task(void *);
+void vTask(void *);
 
 #define MKCL(n, d) {.name=#n, .fptr=n ## _command, .desc=d}
 
@@ -40,6 +43,7 @@ cmdlist cl[]={
 	MKCL(help, "help"),
 	MKCL(test, "test new function"),
 	MKCL(fibo, "Return Nth fibonnaci number"),
+	MKCL(new, "Create new task"),
 	MKCL(, ""),
 };
 
@@ -214,6 +218,17 @@ void fibo_command(int n, char *argv[]) {
     fio_printf(1, "The %dth fibonacci number is:%d\r\n",atoi(argv[1]), result);
 
 }
+void new_command(int n, char * argv[])
+{
+    fio_printf(1, "\r\n");
+    xTaskCreate(anonymous_task,
+                (signed portCHAR *) "NEW",
+                128/* stack size */,
+                NULL,
+                tskIDLE_PRIORITY + 1,
+                NULL
+                );
+}
 
 void _command(int n, char *argv[]){
     (void)n; (void)argv;
@@ -241,4 +256,28 @@ int atoi(char * str)
     }
     
     return result;
+}
+void anonymous_task(void * pvParameters)
+{
+    for(;;) {
+        vTaskDelay(100);
+    }
+}
+void vTask( void *pvParameters)
+{
+    const char *pcTaskName;
+    volatile unsigned long ul;
+
+    pcTaskName = (char *) pvParameters;
+
+    for(;;)
+    {
+        //fio_printf(1, "\r\n");
+        /* Print out the name of task. */
+        fio_printf(1, "%s", pcTaskName);
+        /* Delay for a period. */
+        for( ul = 0; ul < 40000000; ul++)
+        {
+        }
+    }
 }
