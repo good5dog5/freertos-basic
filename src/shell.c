@@ -27,9 +27,11 @@ void test_command(int, char **);
 void fibo_command(int, char **);
 void new_command(int, char **);
 void _command(int, char **);
+
 int  atoi(char *);
 void anonymous_task(void *);
-void vTask(void *);
+void gen_syslog(void *);
+void newTask(void *);
 
 #define MKCL(n, d) {.name=#n, .fptr=n ## _command, .desc=d}
 
@@ -43,8 +45,7 @@ cmdlist cl[]={
 	MKCL(help, "help"),
 	MKCL(test, "test new function"),
 	MKCL(fibo, "Return Nth fibonnaci number"),
-	MKCL(new, "Create new task"),
-	MKCL(, ""),
+	MKCL(new, "Create new task")
 };
 
 int parse_command(char *str, char *argv[]){
@@ -64,6 +65,8 @@ int parse_command(char *str, char *argv[]){
 	}
 	/* last one */
 	argv[count++]=&str[p];
+    if(strlen(str) == 0)
+        count = 0;
 
 	return count;
 }
@@ -194,7 +197,7 @@ void test_command(int n, char *argv[]) {
 
 void fibo_command(int n, char *argv[]) {
     int i = 0;
-    int first = 0;
+    int first = -1;
     int second = 1;
     int result;
 
@@ -206,28 +209,37 @@ void fibo_command(int n, char *argv[]) {
     }
 
     for(i=0; i <= atoi(argv[1]); i++ ) {
-        if( i <= 1)
-            result = i;
-        else 
-        {
             result = first + second;
             first = second;
             second = result;
-        }
     }
     fio_printf(1, "The %dth fibonacci number is:%d\r\n",atoi(argv[1]), result);
 
 }
 void new_command(int n, char * argv[])
 {
+    signed portBASE_TYPE err;
+    argList *pArgs;
+
     fio_printf(1, "\r\n");
-    xTaskCreate(anonymous_task,
-                (signed portCHAR *) "NEW",
-                128/* stack size */,
-                NULL,
-                tskIDLE_PRIORITY + 1,
-                NULL
-                );
+
+    if(n>1) {
+        /* Allocate memory for arguments which will be passed */
+        pArgs = pvPortMalloc(sizeof(argList));
+        pArgs->argc = n    - 1;
+        pArgs->argv = argv + 1;
+
+        err = xTaskCreate( newTask, (signed portCHAR *) argv[1], 512, pArgs, tskIDLE_PRIORITY + 1, NULL);
+
+        if(err == pdPASS) {
+            fio_printf(1, "Task %s is created.\r\n", pArgs->argv[0]);
+        }
+        else {
+            fio_printf(2, "Task %s is fail to create.\r\n", pArgs->argv[0]);
+            vPortFree(pArgs);
+        }
+    }
+
 }
 
 void _command(int n, char *argv[]){
@@ -259,25 +271,55 @@ int atoi(char * str)
 }
 void anonymous_task(void * pvParameters)
 {
+    //fio_printf(1, "\r\n");
+    //fio_printf(1, "I am a new task, and i do nothing:)\r\n");
+
     for(;;) {
         vTaskDelay(100);
     }
 }
-void vTask( void *pvParameters)
+void gen_syslog(void * pvParameters)
 {
-    const char *pcTaskName;
-    volatile unsigned long ul;
+    int handle;
+    int error;
 
-    pcTaskName = (char *) pvParameters;
+    
+    handle = host_action(SYS_SYSTEM, "mkdir -p output");
+    handle = host_action(SYS_SYSTEM, "touch output/syslog");
 
-    for(;;)
-    {
-        //fio_printf(1, "\r\n");
-        /* Print out the name of task. */
-        fio_printf(1, "%s", pcTaskName);
-        /* Delay for a period. */
-        for( ul = 0; ul < 40000000; ul++)
-        {
-        }
+    handle = host_action(SYS_OPEN, "output/syslog", 8);
+    if(handle == -1) {
+        fio_printf(2, "Open file error!\n\r");
+        return;
+    }
+
+    char *buffer = "Test host_write function which can write data to output/syslog\n";
+    error = host_action(SYS_WRITE, handle, (void *)buffer, strlen(buffer));
+    if(error != 0) {
+        fio_printf(1, "Write file error! Remain %d bytes didn't write in the file.\n\r", error);
+        host_action(SYS_CLOSE, handle);
+        return;
     }
 }
+
+void newTask(void * pvParameters)
+{
+    argList *pArgs = pvParameters;
+    cmdfunc *fptr;
+
+    /* Get the command function pointer */
+    fptr = do_command(pArgs->argv[0]);
+    if(fptr != NULL) {
+        fptr(pArgs->argc, pArgs->argv);
+    }
+    else {
+        fio_printf(2, "\r\n\" %s\" command not found.\r\n", pArgs->argv[0]);
+    }
+    /* Free the pre-allocate memory */
+    vPortFree(pArgs);
+    /* Delete this task. */
+    vTaskSuspend(NULL);
+    fio_printf(1, "\r\n");
+    
+}
+
