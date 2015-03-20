@@ -11,7 +11,7 @@ typedef int hostfunc(va_list);
 
 typedef struct {
         enum HOST_SYSCALL action;
-	hostfunc *fptr;
+    	hostfunc *fptr;
 } hostcmdlist;
 
 #define MKHCL(a, n) {.action=a, .fptr=host_ ## n}
@@ -27,9 +27,10 @@ const hostcmdlist hcl[23]={
 int host_call(enum HOST_SYSCALL action, void *argv)
 {
     /* For Thumb-2 code use the BKPT instruction instead of SWI.
-* Refer to:
-* http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dui0471c/Bgbjhiea.html
-* http://en.wikipedia.org/wiki/ARM_Cortex-M#Cortex-M4 */
+    * Refer to:
+    * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dui0471c/Bgbjhiea.html
+    * http://en.wikipedia.org/wiki/ARM_Cortex-M#Cortex-M4 */
+
     int result;
     __asm__( \
       "bkpt 0xAB\n"\

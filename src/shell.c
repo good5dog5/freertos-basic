@@ -223,21 +223,22 @@ void new_command(int n, char * argv[])
 
     fio_printf(1, "\r\n");
 
-    if(n>1) {
-        /* Allocate memory for arguments which will be passed */
-        pArgs = pvPortMalloc(sizeof(argList));
-        pArgs->argc = n    - 1;
-        pArgs->argv = argv + 1;
+    if(n<1) 
+        return;
 
-        err = xTaskCreate( newTask, (signed portCHAR *) argv[1], 512, pArgs, tskIDLE_PRIORITY + 1, NULL);
+    /* Allocate memory for arguments which will be passed */
+    pArgs = pvPortMalloc(sizeof(argList));
+    pArgs->argc = n    - 1;
+    pArgs->argv = argv + 1;
 
-        if(err == pdPASS) {
-            fio_printf(1, "Task %s is created.\r\n", pArgs->argv[0]);
-        }
-        else {
-            fio_printf(2, "Task %s is fail to create.\r\n", pArgs->argv[0]);
-            vPortFree(pArgs);
-        }
+    err = xTaskCreate( newTask, (signed portCHAR *) argv[1], 512, pArgs, tskIDLE_PRIORITY + 1, NULL);
+
+    if(err == pdPASS) {
+        fio_printf(1, "Task %s is created.\r\n", pArgs->argv[0]);
+    }
+    else {
+        fio_printf(2, "Task %s is fail to create.\r\n", pArgs->argv[0]);
+        vPortFree(pArgs);
     }
 
 }

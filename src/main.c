@@ -93,26 +93,24 @@ void command_prompt(void *pvParameters)
         char hint[] = USER_NAME "@" USER_NAME "-STM32:~$ ";
 
 	fio_printf(1, "\rWelcome to FreeRTOS Shell\r\n");
-	while(1){
+
+        while(1){
                 fio_printf(1, "%s", hint);
 		fio_read(0, buf, 127);
 	
 		int n=parse_command(buf, argv);
 
-/* Test parse_command 
-                int k = 0;
-
-                fio_printf(1, "\r\n");
-                fio_printf(1, "n is : %d\r\n", n);
-                for(k=0; k < n; k++)
-                        fio_printf(1, "%s\r\n", argv[k]);
-*/
-
 		/* will return pointer to the command function */
 		cmdfunc *fptr=do_command(argv[0]);
 		if(fptr!=NULL)
 			fptr(n, argv);
-		else
+                /* correct promt If Just press enter or 
+                   multiple space then enter 
+                */
+		else if (n==0) {
+                        fio_printf(1, "\r\n");
+                }
+                else
 			fio_printf(2, "\r\n\"%s\" command not found.\r\n", argv[0]);
 	}
 
@@ -186,7 +184,7 @@ int main()
 
         //xTaskCreate(vTask, (signed portCHAR *) "Task 1", 100, (void *) pcNameForTask1, 1, NULL);
         //xTaskCreate(vTask, (signed portCHAR *) "Task 2", 100, (void *) pcNameForTask2, 1, NULL);
-#if 0
+#if 1
 	/* Create a task to record system log. */
 	xTaskCreate(system_logger,
 	            (signed portCHAR *) "Logger",
