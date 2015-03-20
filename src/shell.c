@@ -196,10 +196,10 @@ void test_command(int n, char *argv[]) {
 }
 
 void fibo_command(int n, char *argv[]) {
+
     int i = 0;
-    int first = -1;
-    int second = 1;
-    int result;
+    int fibo[50] = {0, 1};
+    int Nth = atoi(argv[1]);
 
     fio_printf(1, "\r\n");
 
@@ -208,12 +208,10 @@ void fibo_command(int n, char *argv[]) {
         return;
     }
 
-    for(i=0; i <= atoi(argv[1]); i++ ) {
-            result = first + second;
-            first = second;
-            second = result;
-    }
-    fio_printf(1, "The %dth fibonacci number is:%d\r\n",atoi(argv[1]), result);
+    for(i = 2; i <= Nth; i++)
+        fibo[i] = fibo[i-1] + fibo[i-2];
+
+    fio_printf(1, "The %dth fibonacci number is:%d\r\n", Nth, fibo[Nth]);
 
 }
 void new_command(int n, char * argv[])
